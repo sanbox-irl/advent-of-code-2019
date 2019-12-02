@@ -1,0 +1,13 @@
+[package]
+name = "advent-of-code-2019"
+version = "0.1.0"
+authors = ["jjspira"]
+edition = "2018"
+
+[[bin]]
+name = "day1"
+path = "src/day1/main.rs"
+
+[[bin]]
+name = "day2"
+path = "src/day2/main.rs"
