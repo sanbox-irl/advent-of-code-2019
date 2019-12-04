@@ -8,15 +8,13 @@ fn main() {
     );
 }
 
-fn check_is_valid(input: usize) -> bool {
+fn check_is_valid(mut input: usize) -> bool {
     let digit_array: [usize; 6] = {
         let mut array = [0; 6];
 
-        let mut our_input = input;
-
         for digit in (0..6).rev() {
-            array[digit] = our_input % 10;
-            our_input /= 10;
+            array[digit] = input % 10;
+            input /= 10;
         }
 
         array
