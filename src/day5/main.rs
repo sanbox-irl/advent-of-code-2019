@@ -1,5 +1,7 @@
+const INPUT: i32 = 5;
+
 fn main() {
-    let mut input: Vec<i32> = "1101,100,-1,4,0"
+    let mut input: Vec<i32> = include_str!("input.txt")
         .trim()
         .split(",")
         .map(|s| s.parse::<i32>().unwrap())
@@ -7,82 +9,134 @@ fn main() {
 
     let mut instruction = 0;
     while let Some(move_amount) = process_instruction(instruction, &mut input) {
-        instruction += move_amount;
+        instruction = move_amount;
         if instruction >= input.len() {
             break;
         }
     }
-
-    println!("{:?}", input);
 }
 
 fn process_instruction(i_pos: usize, byte_array: &mut Vec<i32>) -> Option<usize> {
-    let digitized_instruction = digitize_number(byte_array[i_pos] as u32);
-    let instruction: Instruction = digitized_instruction[0].into();
-
-    println!("{:?}", digitized_instruction);
+    let (instruction, parameter_types) = digitize_number(byte_array[i_pos] as u32);
 
     match instruction {
         Instruction::Add => {
-            let val1 = parameter_value(digitized_instruction[1], byte_array[i_pos + 1], byte_array);
-            let val2 = parameter_value(digitized_instruction[2], byte_array[i_pos + 2], byte_array);
+            let val1 = parameter_value(parameter_types[0], byte_array[i_pos + 1], byte_array);
+            let val2 = parameter_value(parameter_types[1], byte_array[i_pos + 2], byte_array);
 
-            println!("gah");
             let final_position = byte_array[i_pos + 3] as usize;
             byte_array[final_position] = val1 + val2;
 
-            Some(4)
+            Some(i_pos + 4)
         }
 
-        Instruction::Multiply => unimplemented!(),
+        Instruction::Multiply => {
+            let val1 = parameter_value(parameter_types[0], byte_array[i_pos + 1], byte_array);
+            let val2 = parameter_value(parameter_types[1], byte_array[i_pos + 2], byte_array);
+
+            let final_position = byte_array[i_pos + 3] as usize;
+            byte_array[final_position] = val1 * val2;
+
+            Some(i_pos + 4)
+        }
+
+        Instruction::Input => {
+            println!("Input is {}", INPUT);
+            let pos = byte_array[i_pos + 1] as usize;
+            byte_array[pos] = INPUT;
+            Some(i_pos + 2)
+        }
+
+        Instruction::Output => {
+            let value = parameter_value(parameter_types[0], byte_array[i_pos + 1], byte_array);
+            println!("OUTPUT is: {}", value);
+            Some(i_pos + 2)
+        }
+
+        Instruction::JumpTrue => {
+            let test_param = parameter_value(parameter_types[0], byte_array[i_pos + 1], byte_array);
+            if test_param != 0 {
+                Some(
+                    parameter_value(parameter_types[1], byte_array[i_pos + 2], byte_array) as usize,
+                )
+            } else {
+                Some(i_pos + 3)
+            }
+        }
+
+        Instruction::JumpFalse => {
+            let test_param = parameter_value(parameter_types[0], byte_array[i_pos + 1], byte_array);
+            if test_param == 0 {
+                Some(
+                    parameter_value(parameter_types[1], byte_array[i_pos + 2], byte_array) as usize,
+                )
+            } else {
+                Some(i_pos + 3)
+            }
+        }
+
+        Instruction::LessThan => {
+            let param1 = parameter_value(parameter_types[0], byte_array[i_pos + 1], byte_array);
+            let param2 = parameter_value(parameter_types[1], byte_array[i_pos + 2], byte_array);
+            let val = if param1 < param2 { 1 } else { 0 };
+            let pos = byte_array[i_pos + 3] as usize;
+            byte_array[pos] = val;
+
+            Some(i_pos + 4)
+        }
+
+        Instruction::Equals => {
+            let param1 = parameter_value(parameter_types[0], byte_array[i_pos + 1], byte_array);
+            let param2 = parameter_value(parameter_types[1], byte_array[i_pos + 2], byte_array);
+            let val = if param1 == param2 { 1 } else { 0 };
+            let pos = byte_array[i_pos + 3] as usize;
+            byte_array[pos] = val;
+
+            Some(i_pos + 4)
+        }
 
         Instruction::Halt => None,
     }
 }
 
-// 1 => {
-//     true
-// }
-// 2 => {
-//     let mult =
-//         computer[computer[opcode_position + 1]] * computer[computer[opcode_position + 2]];
-//     let final_position = computer[opcode_position + 3];
-//     computer[final_position] = mult;
-//     true
-// }
-// 99 => false,
-// _ => panic!("Invalid opcode!"),
-
-fn parameter_value(param_kind: u32, argument: i32, byte_array: &Vec<i32>) -> i32 {
-    println!("Parameter Kind is {}", param_kind);
-    println!("Argument is {}", argument);
-    println!("Byte Array os {:?}", byte_array);
-    match ParameterMode::from(param_kind) {
+fn parameter_value(param_kind: ParameterMode, argument: i32, byte_array: &Vec<i32>) -> i32 {
+    match param_kind {
         ParameterMode::Pointer => byte_array[argument as usize],
         ParameterMode::Value => argument,
     }
 }
 
-const MAX_PARAMETER: usize = 4;
+const MAX_PARAMETER: usize = 3;
 
-fn digitize_number(mut instruction: u32) -> (Instruction, [u32; MAX_PARAMETER]) {
-    let mut array = [0; MAX_PARAMETER + 1];
+fn digitize_number(mut instruction: u32) -> (Instruction, [ParameterMode; MAX_PARAMETER]) {
+    let mut array = [0; MAX_PARAMETER + 2];
     for digit in 0..MAX_PARAMETER + 1 {
         array[digit] = instruction % 10;
         instruction /= 10;
     }
 
-    let mut final_array_idiot_double_digit_bullshit = [0; MAX_PARAMETER];
-    final_array_idiot_double_digit_bullshit[0] = array[1] * 10 + array[2];
-    final_array_idiot_double_digit_bullshit.copy_from_slice(&array[2..]);
+    let mut final_array_idiot_double_digit_bullshit = [ParameterMode::Pointer; MAX_PARAMETER];
 
-    final_array_idiot_double_digit_bullshit
+    for i in 2..MAX_PARAMETER + 2 {
+        final_array_idiot_double_digit_bullshit[i - 2] = array[i].into();
+    }
+
+    (
+        (array[1] * 10 + array[0]).into(),
+        final_array_idiot_double_digit_bullshit,
+    )
 }
 
 #[derive(Clone, Copy, Debug)]
 enum Instruction {
     Add = 1,
     Multiply = 2,
+    Input = 3,
+    Output = 4,
+    JumpTrue = 5,
+    JumpFalse = 6,
+    LessThan = 7,
+    Equals = 8,
     Halt = 99,
 }
 
@@ -91,7 +145,14 @@ impl From<u32> for Instruction {
         match o {
             1 => Instruction::Add,
             2 => Instruction::Multiply,
+            3 => Instruction::Input,
+            4 => Instruction::Output,
             99 => Instruction::Halt,
+            5 => Instruction::JumpTrue,
+            6 => Instruction::JumpFalse,
+            7 => Instruction::LessThan,
+            8 => Instruction::Equals,
+
             _ => panic!("That is an invalid instruction: {}!", o),
         }
     }
