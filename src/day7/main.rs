@@ -1,5 +1,6 @@
 use std::sync::mpsc;
 use std::thread;
+use rayon::prelude::*;
 
 const AMP_NUMBER: usize = 5;
 
@@ -13,7 +14,7 @@ fn main() {
         .collect();
 
     let output = heap_algorithm(&mut [5, 6, 7, 8, 9])
-        .iter()
+        .par_iter()
         .map(|signal| run_simulation_looped(&input, signal))
         .max()
         .unwrap_or_default();
@@ -110,7 +111,7 @@ fn run_simulation_looped(input: &Vec<i32>, initial_signals: &[i32; AMP_NUMBER]) 
         receivers.push(Some(receiver));
     }
 
-    // Final Version...
+    // Final Output...
     let (final_in, final_out) = mpsc::channel();
     senders.push(Some(final_in));
 

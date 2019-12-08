@@ -31,3 +31,6 @@ path = "src/day6/main.rs"
 [[bin]]
 name = "day7"
 path = "src/day7/main.rs"
+
+[dependencies]
+rayon = "1.2.1"
