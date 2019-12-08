@@ -23,6 +23,7 @@ fn main() {
     println!("Miliseconds: {}", diff.as_secs_f64()*1000.0)
 }
 
+// Basically ripped from some gist
 fn heap_algorithm(list: &mut [i32; AMP_NUMBER]) -> Vec<[i32; AMP_NUMBER]> {
     let mut ret = vec![];
 
@@ -97,6 +98,7 @@ fn run_simulation_looped(input: &Vec<i32>, initial_signals: &[i32; AMP_NUMBER]) 
         let (sender, receiver) = mpsc::channel();
 
         sender.send(initial_signals[i]).unwrap();
+
         if i == 0 {
             sender.send(0).unwrap();
             initial_sender = Some(sender);
@@ -127,6 +129,7 @@ fn run_simulation_looped(input: &Vec<i32>, initial_signals: &[i32; AMP_NUMBER]) 
         });
     }
 
+    // Block the main thread until CPU4 has finished processing...
     for recv in final_out {
         if let Some(sender) = &mut initial_sender {
             match sender.send(recv) {
