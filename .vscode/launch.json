@@ -225,6 +225,80 @@
             },
             "args": [],
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'day7'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=day7",
+                    "--package=advent-of-code-2019"
+                ],
+                "filter": {
+                    "name": "day7",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'day7'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=day7",
+                    "--package=advent-of-code-2019"
+                ],
+                "filter": {
+                    "name": "day7",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'day8'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=day8",
+                    "--package=advent-of-code-2019"
+                ],
+                "filter": {
+                    "name": "day8",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'day8'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=day8",
+                    "--package=advent-of-code-2019"
+                ],
+                "filter": {
+                    "name": "day8",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
         }
     ]
 }
