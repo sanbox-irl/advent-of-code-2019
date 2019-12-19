@@ -15,15 +15,42 @@ fn main() {
             })
         })
         .collect();
-    let asteroid_view = input.clone();
+    let mut asteroid_view = input.clone();
 
     let position = part1(&mut input, &asteroid_view);
+    let destruction_list: Vec<AsteroidRelationship> = input[position.0 + position.1 * FIELD_WIDTH]
+        .as_ref()
+        .unwrap()
+        .asteroid_relationships
+        .clone();
+
+    for relationship in destruction_list.into_iter() {
+        let position = relationship.other_position;
+        input.remove(position.0 + position.1 * FIELD_WIDTH);
+        asteroid_view
+    }
+
 }
 
-fn part1(
-    input: &mut Vec<Option<Asteroid>>,
-    asteroid_view: &Vec<Option<Asteroid>>,
-) -> (usize, usize) {
+fn part1(input: &mut Vec<Option<Asteroid>>, asteroid_view: &Vec<Option<Asteroid>>) -> Position {
+    asteroid_procedure(input, asteroid_view);
+
+    let mut final_pos = (0, 0);
+    let mut best_score = 0;
+
+    for asteroid in input.iter() {
+        if let Some(asteroid) = asteroid {
+            if asteroid.asteroid_relationships.len() > best_score {
+                best_score = asteroid.asteroid_relationships.len();
+                final_pos = asteroid.position;
+            }
+        }
+    }
+
+    final_pos
+}
+
+fn asteroid_procedure(input: &mut Vec<Option<Asteroid>>, asteroid_view: &Vec<Option<Asteroid>>) {
     // Make Basic Views
     for asteroid in input.iter_mut() {
         if let Some(asteroid) = asteroid {
@@ -41,7 +68,7 @@ fn part1(
     for asteroid in input.iter_mut() {
         if let Some(asteroid) = asteroid {
             let asteroid: &mut Asteroid = asteroid;
-            asteroid.other_asteroids.sort_by(|la, ra| {
+            asteroid.asteroid_relationships.sort_by(|la, ra| {
                 la.angle
                     .partial_cmp(&ra.angle)
                     .and_then(|ord| {
@@ -54,24 +81,10 @@ fn part1(
                     .unwrap()
             });
             asteroid
-                .other_asteroids
+                .asteroid_relationships
                 .dedup_by_key(|asteroid| asteroid.angle);
         }
     }
-
-    let mut final_pos = (0, 0);
-    let mut best_score = 0;
-
-    for asteroid in input.iter() {
-        if let Some(asteroid) = asteroid {
-            if asteroid.other_asteroids.len() > best_score {
-                best_score = asteroid.other_asteroids.len();
-                final_pos = asteroid.position;
-            }
-        }
-    }
-
-    final_pos
 }
 
 fn make_relationship(asteroid: &mut Asteroid, other: &Asteroid) {
@@ -83,28 +96,33 @@ fn make_relationship(asteroid: &mut Asteroid, other: &Asteroid) {
 
     let angle = distance_vec2.1.atan2(distance_vec2.0);
 
-    asteroid
-        .other_asteroids
-        .push(AsteroidRelationship { distance, angle })
+    asteroid.asteroid_relationships.push(AsteroidRelationship {
+        distance,
+        angle,
+        other_position: other.position,
+    })
 }
 
 #[derive(Debug, Clone)]
 struct Asteroid {
-    pub position: (usize, usize),
-    pub other_asteroids: Vec<AsteroidRelationship>,
+    pub position: Position,
+    pub asteroid_relationships: Vec<AsteroidRelationship>,
 }
 
 impl Asteroid {
-    pub fn new(position: (usize, usize)) -> Asteroid {
+    pub fn new(position: Position) -> Asteroid {
         Asteroid {
             position,
-            other_asteroids: vec![],
+            asteroid_relationships: vec![],
         }
     }
 }
 
 #[derive(Debug, Clone, Copy)]
 struct AsteroidRelationship {
+    pub other_position: Position,
     pub distance: f64,
     pub angle: f64,
 }
+
+pub type Position = (usize, usize);
